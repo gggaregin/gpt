@@ -607,11 +607,11 @@ def add_equipment():
     ]
     for mark, desc, x, y, z in hxs:
         M.add_product(
-            "IFCHEATEXCHANGER", f"{mark}_HEAT_EXCHANGER", desc, mark,
+            "IFCBUILDINGELEMENTPROXY", f"{mark}_HEAT_EXCHANGER", desc, mark,
             LAYERS["equipment"], hx_shapes(x, y, z), "equipment",
             system={"K1":"Heating","K2":"Ventilation","K3":"DHW","K4":"DHW"}[mark],
             mark=mark, category="equipment",
-            notes="Simplified but recognizable body with four connection nozzles."
+            notes="IFC2x3 proxy; intended class IfcHeatExchanger. Simplified body with four nozzles."
         )
 
     pumps = [
@@ -624,10 +624,10 @@ def add_equipment():
     ]
     for name, mark, system, x, y, z in pumps:
         M.add_product(
-            "IFCPUMP", f"{name}_PUMP", f"Circulation pump group {mark}", name,
+            "IFCBUILDINGELEMENTPROXY", f"{name}_PUMP", f"Circulation pump group {mark}", name,
             LAYERS["equipment"], pump_shapes(x, y, z), "equipment",
             system=system, mark=mark, category="equipment",
-            notes="Each duty/standby pump is a separate IfcPump."
+            notes="IFC2x3 proxy; intended class IfcPump. Each duty/standby pump is separate."
         )
 
     tanks = [
@@ -636,10 +636,10 @@ def add_equipment():
     ]
     for mark, x, y, z, system in tanks:
         M.add_product(
-            "IFCTANK", f"{mark}_WESTER_W400", "Expansion tank Wester W400, 6 bar",
+            "IFCBUILDINGELEMENTPROXY", f"{mark}_WESTER_W400", "Expansion tank Wester W400, 6 bar",
             mark, LAYERS["equipment"], tank_shapes(x, y, z), "tank",
             system=system, mark=mark, category="equipment",
-            notes="Accepted coordination envelope: diameter 750 mm, body height 1350 mm."
+            notes="IFC2x3 proxy; intended class IfcTank. Envelope: diameter 750 mm, height 1350 mm."
         )
 
     M.add_product(
@@ -859,9 +859,9 @@ def add_instruments():
             box(p[0],p[1],p[2]+205,60,20,20),
         ]
         M.add_product(
-            "IFCSENSOR", name, desc, name, LAYERS["instrument"],
+            "IFCBUILDINGELEMENTPROXY", name, desc, name, LAYERS["instrument"],
             shapes, "instrument", system=system, dn=dn, category="instrument",
-            notes="Separate selectable indicating instrument / sensor."
+            notes="IFC2x3 proxy; intended class IfcSensor. Separate selectable instrument."
         )
 
 
@@ -1146,9 +1146,9 @@ elements = [p for p in ifc.by_type("IfcProduct") if getattr(p, "Representation",
 assert len(elements) == len(M.objects), (len(elements),len(M.objects))
 assert len(ifc.by_type("IfcFlowSegment")) >= 45
 assert len(ifc.by_type("IfcFlowFitting")) >= 45
-assert len(ifc.by_type("IfcPump")) == 6
-assert len(ifc.by_type("IfcHeatExchanger")) == 4
-assert len(ifc.by_type("IfcTank")) == 2
+assert sum(1 for o in M.objects if o["name"].endswith("_PUMP")) == 6
+assert sum(1 for o in M.objects if o["name"].endswith("_HEAT_EXCHANGER")) == 4
+assert sum(1 for o in M.objects if "WESTER_W400" in o["name"]) == 2
 assert len({e.Name for e in elements}) == len(elements)
 
 settings = ifcopenshell.geom.settings()
@@ -1168,10 +1168,10 @@ counts = {
     "IfcWallStandardCase":len(ifc.by_type("IfcWallStandardCase")),
     "IfcFlowSegment":len(ifc.by_type("IfcFlowSegment")),
     "IfcFlowFitting":len(ifc.by_type("IfcFlowFitting")),
-    "IfcHeatExchanger":len(ifc.by_type("IfcHeatExchanger")),
-    "IfcPump":len(ifc.by_type("IfcPump")),
-    "IfcTank":len(ifc.by_type("IfcTank")),
-    "IfcSensor":len(ifc.by_type("IfcSensor")),
+    "HeatExchanger_proxies":sum(1 for o in M.objects if o["name"].endswith("_HEAT_EXCHANGER")),
+    "Pump_proxies":sum(1 for o in M.objects if o["name"].endswith("_PUMP")),
+    "Tank_proxies":sum(1 for o in M.objects if "WESTER_W400" in o["name"]),
+    "Instrument_proxies":sum(1 for o in M.objects if o["category"] == "instrument"),
     "IfcBuildingElementProxy":len(ifc.by_type("IfcBuildingElementProxy")),
 }
 
@@ -1235,9 +1235,10 @@ readme = f"""ITP COMPLETE — ARCHICAD 23 COORDINATION MODEL
 - 07_ITP_Instruments
 
 Every straight pipe is a separate IfcFlowSegment. Elbows, tees, reducers, flanges,
-filters and valves are separate IfcFlowFitting elements. K1–K4 are separate
-IfcHeatExchanger elements; K5–K7 duty/standby units are six separate IfcPump
-elements; K12–K13 are separate IfcTank elements. K8–K11 and K14–K15 are retained
+filters and valves are separate IfcFlowFitting elements. K1–K4, K5–K7 duty/standby units and K12–K13 are separate
+IfcBuildingElementProxy occurrences because IFC 2x3 contains the corresponding
+pump/heat-exchanger/tank classes primarily as type-level definitions. Functional
+class, name and mark are retained in Pset_ITP_Identity. K8–K11 and K14–K15 are retained
 in object names and Mark properties. All items have Pset_ITP_Identity.
 
 5. SYSTEM COLORS
