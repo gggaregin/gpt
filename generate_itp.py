@@ -233,6 +233,9 @@ class IFCBuilder:
         self.p0 = self.add("IFCCARTESIANPOINT((0.,0.,0.))")
         self.dz = self.add("IFCDIRECTION((0.,0.,1.))")
         self.dx = self.add("IFCDIRECTION((1.,0.,0.))")
+        self.p2 = self.add("IFCCARTESIANPOINT((0.,0.))")
+        self.dx2 = self.add("IFCDIRECTION((1.,0.))")
+        self.profile_pos = self.add(f"IFCAXIS2PLACEMENT2D({self.p2},{self.dx2})")
         self.world = self.add(f"IFCAXIS2PLACEMENT3D({self.p0},{self.dz},{self.dx})")
         self.context = self.add(
             f"IFCGEOMETRICREPRESENTATIONCONTEXT($,'Model',3,1.E-05,{self.world},$)"
@@ -307,7 +310,7 @@ class IFCBuilder:
             ref = self.direction((math.cos(ang), math.sin(ang), 0))
             pos = self.add(f"IFCAXIS2PLACEMENT3D({p},{axis},{ref})")
             profile = self.add(
-                f"IFCRECTANGLEPROFILEDEF(.AREA.,$,$,{fnum(shape['w'])},{fnum(shape['d'])})"
+                f"IFCRECTANGLEPROFILEDEF(.AREA.,$,${self.profile_pos},{fnum(shape['w'])},{fnum(shape['d'])})"
             )
             item = self.add(
                 f"IFCEXTRUDEDAREASOLID({profile},{pos},{self.dz},{fnum(shape['h'])})"
@@ -321,10 +324,10 @@ class IFCBuilder:
             ref = self.direction(u)
             pos = self.add(f"IFCAXIS2PLACEMENT3D({p},{axis},{ref})")
             if k == "cyl":
-                profile = self.add(f"IFCCIRCLEPROFILEDEF(.AREA.,$,$,{fnum(shape['r'])})")
+                profile = self.add(f"IFCCIRCLEPROFILEDEF(.AREA.,$,${self.profile_pos},{fnum(shape['r'])})")
             else:
                 profile = self.add(
-                    f"IFCRECTANGLEPROFILEDEF(.AREA.,$,$,{fnum(shape['w'])},{fnum(shape['d'])})"
+                    f"IFCRECTANGLEPROFILEDEF(.AREA.,$,${self.profile_pos},{fnum(shape['w'])},{fnum(shape['d'])})"
                 )
             item = self.add(
                 f"IFCEXTRUDEDAREASOLID({profile},{pos},{self.dz},{fnum(vlen(vec))})"
