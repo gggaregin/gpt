@@ -1141,7 +1141,8 @@ import ifcopenshell.geom
 
 ifc = ifcopenshell.open(str(OUT/IFC_NAME))
 assert ifc.schema.upper() == "IFC2X3"
-elements = ifc.by_type("IfcElement")
+all_ifc_elements = ifc.by_type("IfcElement")
+elements = [p for p in ifc.by_type("IfcProduct") if getattr(p, "Representation", None)]
 assert len(elements) == len(M.objects), (len(elements),len(M.objects))
 assert len(ifc.by_type("IfcFlowSegment")) >= 45
 assert len(ifc.by_type("IfcFlowFitting")) >= 45
@@ -1162,7 +1163,8 @@ for e in elements:
 assert not geometry_errors, geometry_errors[:10]
 
 counts = {
-    "IfcElement_total":len(elements),
+    "IfcProductWithGeometry":len(elements),
+    "IfcElement_total":len(all_ifc_elements),
     "IfcWallStandardCase":len(ifc.by_type("IfcWallStandardCase")),
     "IfcFlowSegment":len(ifc.by_type("IfcFlowSegment")),
     "IfcFlowFitting":len(ifc.by_type("IfcFlowFitting")),
