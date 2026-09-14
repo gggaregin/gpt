@@ -1151,6 +1151,14 @@ assert sum(1 for o in M.objects if o["name"].endswith("_HEAT_EXCHANGER")) == 4
 assert sum(1 for o in M.objects if "WESTER_W400" in o["name"]) == 2
 assert len({e.Name for e in elements}) == len(elements)
 
+import ifcopenshell.validate
+validation_logger = ifcopenshell.validate.json_logger()
+ifcopenshell.validate.validate(ifc, validation_logger)
+if validation_logger.statements:
+    print("IFC_SCHEMA_VALIDATION_BEGIN")
+    print(json.dumps(validation_logger.statements[:100], ensure_ascii=False, indent=2, default=str))
+    print("IFC_SCHEMA_VALIDATION_END")
+
 settings = ifcopenshell.geom.settings()
 geometry_errors = []
 for e in elements:
@@ -1159,7 +1167,7 @@ for e in elements:
         if not getattr(shape.geometry,"verts",None):
             geometry_errors.append([e.Name,"empty geometry"])
     except Exception as exc:
-        geometry_errors.append([e.Name,str(exc)[:180]])
+        geometry_errors.append([e.Name,e.is_a(),repr(exc)])
 assert not geometry_errors, geometry_errors[:10]
 
 counts = {
