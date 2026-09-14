@@ -1,0 +1,50 @@
+name: Build and validate ITP model
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - generate_itp.py
+      - .github/workflows/build-itp.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout build branch
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.head_ref || github.ref_name }}
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: pip
+
+      - name: Install validation dependencies
+        run: python -m pip install --upgrade pip ifcopenshell Pillow
+
+      - name: Generate IFC, GLB, QA views and ZIP
+        run: python generate_itp.py
+
+      - name: Verify required output files
+        run: |
+          test -s dist/ITP_Complete_Archicad23.ifc
+          test -s dist/ITP_Complete_Preview.glb
+          test -s dist/ITP_Complete_Archicad23.zip
+          test -s dist/QA_report.json
+          grep -q '"status": "PASS"' dist/QA_report.json
+
+      - name: Publish validated build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ITP_Complete_Archicad23
+          path: dist/*
+          if-no-files-found: error
+          retention-days: 90
