@@ -310,7 +310,7 @@ class IFCBuilder:
             ref = self.direction((math.cos(ang), math.sin(ang), 0))
             pos = self.add(f"IFCAXIS2PLACEMENT3D({p},{axis},{ref})")
             profile = self.add(
-                f"IFCRECTANGLEPROFILEDEF(.AREA.,$,${self.profile_pos},{fnum(shape['w'])},{fnum(shape['d'])})"
+                f"IFCRECTANGLEPROFILEDEF(.AREA.,$,{self.profile_pos},{fnum(shape['w'])},{fnum(shape['d'])})"
             )
             item = self.add(
                 f"IFCEXTRUDEDAREASOLID({profile},{pos},{self.dz},{fnum(shape['h'])})"
@@ -324,10 +324,10 @@ class IFCBuilder:
             ref = self.direction(u)
             pos = self.add(f"IFCAXIS2PLACEMENT3D({p},{axis},{ref})")
             if k == "cyl":
-                profile = self.add(f"IFCCIRCLEPROFILEDEF(.AREA.,$,${self.profile_pos},{fnum(shape['r'])})")
+                profile = self.add(f"IFCCIRCLEPROFILEDEF(.AREA.,$,{self.profile_pos},{fnum(shape['r'])})")
             else:
                 profile = self.add(
-                    f"IFCRECTANGLEPROFILEDEF(.AREA.,$,${self.profile_pos},{fnum(shape['w'])},{fnum(shape['d'])})"
+                    f"IFCRECTANGLEPROFILEDEF(.AREA.,$,{self.profile_pos},{fnum(shape['w'])},{fnum(shape['d'])})"
                 )
             item = self.add(
                 f"IFCEXTRUDEDAREASOLID({profile},{pos},{self.dz},{fnum(vlen(vec))})"
