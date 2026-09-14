@@ -344,10 +344,13 @@ class IFCBuilder:
             f"IFCSHAPEREPRESENTATION({self.context},'Body','SweptSolid',({','.join(solids)}))"
         )
         pshape = self.add(f"IFCPRODUCTDEFINITIONSHAPE($,$,({rep}))")
+        object_origin = self.point((0.0, 0.0, 0.0))
+        object_axis = self.add(f"IFCAXIS2PLACEMENT3D({object_origin},{self.dz},{self.dx})")
+        object_place = self.add(f"IFCLOCALPLACEMENT({self.storey_place},{object_axis})")
         gid = ifc_guid("product-" + name)
         base = (
             f"'{gid}',{self.owner},'{esc(name)}','{esc(description)}',$,"
-            f"{self.storey_place},{pshape},'{esc(tag)}'"
+            f"{object_place},{pshape},'{esc(tag)}'"
         )
         if ifctype == "IFCSLAB":
             predefined = ".FLOOR." if "FLOOR" in name else ".ROOF."
@@ -1161,6 +1164,7 @@ if validation_logger.statements:
     print("IFC_SCHEMA_VALIDATION_BEGIN")
     print(json.dumps(validation_logger.statements[:100], ensure_ascii=False, indent=2, default=str))
     print("IFC_SCHEMA_VALIDATION_END")
+assert not validation_logger.statements, validation_logger.statements[:10]
 
 settings = ifcopenshell.geom.settings()
 geometry_errors = []
